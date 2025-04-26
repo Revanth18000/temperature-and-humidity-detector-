@@ -1,43 +1,59 @@
-# Temperature and Humidity Detector using Arduino and DHT11
+#include <LiquidCrystal.h>
 
-This project is a Temperature and Humidity Monitoring System built using an Arduino Uno, DHT11 sensor, LCD display (16x2), and a breadboard. The system reads real-time temperature and humidity data from the DHT11 sensor and displays the values on the LCD screen. It can be used for applications like basic weather stations, smart homes, and environment monitoring.
+#include <DHT.h>
 
-# Components Used
+// Define LCD pins (RS, E, D4, D5, D6, D7)
+LiquidCrystal lcd(7, 6, 5, 4, 3, 8);
 
-Arduino Uno
-DHT11 Temperature and Humidity Sensor
-16x2 LCD Display
-Breadboard
-Jumper Wires
-10kΩ Potentiometer (for LCD contrast control)
-Resistor (optional, depending on setup)
+// Define DHT Sensor
+#define DHTPIN 2       // Pin connected to DHT sensor
+#define DHTTYPE DHT11  // Change to DHT22 if using DHT22
 
-# How It Works
-The DHT11 sensor measures the surrounding temperature and humidity.
-The Arduino reads the sensor data using a DHT library.
-The collected data is displayed on the 16x2 LCD screen in real-time.
-The system continuously updates the readings every few seconds.
+DHT dht(DHTPIN, DHTTYPE);
 
-# Features
-Real-time temperature (°C) and humidity (%) display
-Compact and easy-to-build setup
-User-friendly and beginner-friendly Arduino project
-Useful for basic environmental monitoring
+void setup() {
+    Serial.begin(9600);
+    dht.begin();
+    
+    // Initialize LCD
+    lcd.begin(16, 2);
+    lcd.setCursor(0, 0);
+    lcd.print("Temp Detector");
+    delay(2000);
+    lcd.clear();
+}
 
-# Circuit Diagram
-( given in images please download )
+void loop() {
+    float temp = dht.readTemperature(); // Get temperature in Celsius
+    float hum = dht.readHumidity();     // Get humidity
 
-# Arduino Libraries Used
-DHT.h (for interfacing with the DHT11 sensor)
-LiquidCrystal.h (for controlling the LCD)
+    if (isnan(temp) || isnan(hum)) {
+        Serial.println("Failed to read from DHT sensor!");
+        lcd.setCursor(0, 0);
+        lcd.print("Sensor Error!");
+        return;
+    }
 
-# How to Run
-Connect the components as per the circuit diagram.
-Upload the provided Arduino sketch to the Arduino board.
-Open the Serial Monitor to check sensor readings (optional).
-Observe real-time temperature and humidity on the LCD screen.
+    // Print to Serial Monitor
+    Serial.print("Temp: ");
+    Serial.print(temp);
+    Serial.println(" °C");
+    Serial.print("Humidity: ");
+    Serial.print(hum);
+    Serial.println(" %");
 
-# Future Improvements
-Add data logging to an SD card.
-Send data wirelessly to a mobile app or web server using Wi-Fi (ESP8266) or Bluetooth modules.
-Add alerts if temperature or humidity crosses a threshold.
+    // Display on LCD
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Temp: ");
+    lcd.print(temp);
+    lcd.print(" C");
+
+    lcd.setCursor(0, 1);
+    lcd.print("Humidity: ");
+    lcd.print(hum);
+    lcd.print(" %");
+
+    delay(2000); // Refresh every 2 seconds
+}
+
